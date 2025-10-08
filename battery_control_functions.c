@@ -106,13 +106,13 @@ while(TRUE)
 	}
 
 	// Choose Charging or Blocking mode by inputs
-	if (lUnchargeProtectNt > 0)	{
+	if ((lUnchargeProtectNt > 0) && (lDifferenceCharge < 1))	{
 		setBlockUncharge();
-	} else if (lUnchargeProtectWb > 0) {
+	} else if ((lUnchargeProtectWb > 0) && (lDifferenceCharge < 1)) {
 		setDischargeValue(lOwnUsage);
-	} else if ((lDifferenceCharge > 0) & (lPvProduction > 100)) {
+	} else if ((lDifferenceCharge > 0) && (lPvProduction > 100)) {
 		setChargeValue(lPvProduction - 100);
-	} else if ((lDifferenceCharge > 0) & (lEnergyNt > 0)) {
+	} else if ((lDifferenceCharge > 0) && (lEnergyNt > 0)) {
 		setChargeValue(500);
 	} else {
 		resetChargeControl();
