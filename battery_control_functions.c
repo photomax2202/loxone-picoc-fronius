@@ -66,8 +66,8 @@ void setBlockUncharge()
 void setChargeValue(float aValue)
 {
 	setoutput(0,3);
-	setoutput(1,getChargeValueNeg(aValue));
-	setoutput(2,getChargeValuePos(aValue));
+	setoutput(1,getChargeValuePos(aValue));
+	setoutput(2,getChargeValueNeg(aValue));
 	gBuffer = "";
 	sprintf(gBuffer,"Laden mit definierter Leistung: %f W",aValue);
 	setoutputtext(0,gBuffer);
@@ -76,8 +76,8 @@ void setChargeValue(float aValue)
 void setDischargeValue(float aValue)
 {
 	setoutput(0,3);
-	setoutput(1,getChargeValuePos(aValue));
-	setoutput(2,getChargeValueNeg(aValue));
+	setoutput(1,getChargeValueNeg(aValue));
+	setoutput(2,getChargeValuePos(aValue));
 	gBuffer = "";
 	sprintf(gBuffer,"Entladen mit definierter Leistung: %f W",aValue);
 	setoutputtext(0,gBuffer);
