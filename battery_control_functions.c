@@ -27,19 +27,30 @@ Entladen Erzwingen mit definierter Leistung (O1 =3,O2/-O3=Val)
 #define SOC_TH_RECHARGE_LOW 9.5
 #define SOC_TH_RECHARGE_HIGH 10
 #define STATE_OUTPUT_INTERVAL 600
+#define FUNCTION_INDEX_RESET 0
+#define FUNCTION_INDEX_CHARGE 1
+#define FUNCTION_INDEX_DISCHARGE 2
+#define FUNCTION_INDEX_BLOCK 3
 char gBuffer[BUFF_SIZE];
 int gBattRecharge;
 float gBattSoc;
 int gLastStateOutputDischarge, gLastStateOutputCharge;
+int gFunctionIndex;
+
+// Initialwerte
+gLastStateOutputDischarge = 0;
+gLastStateOutputCharge = 0;
+
 // Funktionen
 
 int getStateOutputTimer(int aTimestamp)
 {
-if ((getcurrenttime()-aTimestamp) > STATE_OUTPUT_INTERVAL) {
-	return 1;
-} else {
-	return 0;
-}
+	int lTimeValue = getcurrenttime()-aTimestamp;
+	if (lTimeValue > STATE_OUTPUT_INTERVAL) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
 
 float getChargeValuePos(float aValue)
@@ -61,6 +72,7 @@ float getChargeValueNeg(float aValue)
 
 void resetChargeControl()
 {
+	gFunctionIndex = FUNCTION_INDEX_RESET;
 	setoutput(0,0);
 	setoutput(1,0);
 	setoutput(2,0);
@@ -69,6 +81,7 @@ void resetChargeControl()
 
 void setBlockUncharge()
 {
+	gFunctionIndex = FUNCTION_INDEX_BLOCK;
 	setoutput(0,2);
 	setoutput(1,0);
 	setoutput(2,0);
@@ -77,30 +90,34 @@ void setBlockUncharge()
 
 void setChargeValue(float aValue)
 {
+	gFunctionIndex = FUNCTION_INDEX_CHARGE;
 	setoutput(0,3);
 	setoutput(1,getChargeValuePos(aValue));
 	setoutput(2,getChargeValueNeg(aValue));
 	gBuffer = "";
-	if (getStateOutputTimer(gLastStateOutputCharge)){
-		sprintf(gBuffer,"Laden mit definierter Leistung: %f W",aValue);	
+	sprintf(gBuffer,"Laden mit definierter Leistung: %f W",aValue);	
+	if (getStateOutputTimer(gLastStateOutputCharge) > 0){
+		setoutputtext(0,gBuffer);
 	}
 	gLastStateOutputCharge = getcurrenttime();
-	setoutputtext(0,gBuffer);
 }
 
 void setDischargeValue(float aValue)
 {
+	gFunctionIndex = FUNCTION_INDEX_DISCHARGE;
 	setoutput(0,3);
 	setoutput(1,getChargeValueNeg(aValue));
 	setoutput(2,getChargeValuePos(aValue));
 	gBuffer = "";
-	if (getStateOutputTimer(gLastStateOutputDischarge)){
-		sprintf(gBuffer,"Entladen mit definierter Leistung: %f W",aValue);
+	sprintf(gBuffer,"Entladen mit definierter Leistung: %f W",aValue);
+	if (getStateOutputTimer(gLastStateOutputDischarge) > 0){
+		setoutputtext(0,gBuffer);
 	}
 	gLastStateOutputDischarge = getcurrenttime();
-	setoutputtext(0,gBuffer);
 }
+
 // Main Program
+void MainCycle() {} //Empty Void Function for Index
 while(TRUE)
 {
 	float lUnchargeProtectNt, lUnchargeProtectWb, lDifferenceCharge, lOwnUsage, lPvProduction;
@@ -134,5 +151,12 @@ while(TRUE)
 		setChargeValue(500);
 	} else {
 		resetChargeControl();
+	}
+	
+	if (gFunctionIndex != FUNCTION_INDEX_CHARGE) {
+		gLastStateOutputCharge = 0;
+	}
+	if (gFunctionIndex != FUNCTION_INDEX_DISCHARGE) {
+		gLastStateOutputDischarge = 0;
 	}
 }
