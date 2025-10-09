@@ -26,10 +26,22 @@ Entladen Erzwingen mit definierter Leistung (O1 =3,O2/-O3=Val)
 #define BUFF_SIZE 256
 #define SOC_TH_RECHARGE_LOW 9.5
 #define SOC_TH_RECHARGE_HIGH 10
+#define STATE_OUTPUT_INTERVAL 600
 char gBuffer[BUFF_SIZE];
 int gBattRecharge;
 float gBattSoc;
+int gLastStateOutputDischarge, gLastStateOutputCharge;
 // Funktionen
+
+int getStateOutputTimer(int aTimestamp)
+{
+if ((getcurrenttime()-aTimestamp) > STATE_OUTPUT_INTERVAL) {
+	return 1;
+} else {
+	return 0;
+}
+}
+
 float getChargeValuePos(float aValue)
 {
 float lWChaMax;
@@ -69,7 +81,10 @@ void setChargeValue(float aValue)
 	setoutput(1,getChargeValuePos(aValue));
 	setoutput(2,getChargeValueNeg(aValue));
 	gBuffer = "";
-	sprintf(gBuffer,"Laden mit definierter Leistung: %f W",aValue);
+	if (getStateOutputTimer(gLastStateOutputCharge)){
+		sprintf(gBuffer,"Laden mit definierter Leistung: %f W",aValue);	
+	}
+	gLastStateOutputCharge = getcurrenttime();
 	setoutputtext(0,gBuffer);
 }
 
@@ -79,7 +94,10 @@ void setDischargeValue(float aValue)
 	setoutput(1,getChargeValueNeg(aValue));
 	setoutput(2,getChargeValuePos(aValue));
 	gBuffer = "";
-	sprintf(gBuffer,"Entladen mit definierter Leistung: %f W",aValue);
+	if (getStateOutputTimer(gLastStateOutputDischarge)){
+		sprintf(gBuffer,"Entladen mit definierter Leistung: %f W",aValue);
+	}
+	gLastStateOutputDischarge = getcurrenttime();
 	setoutputtext(0,gBuffer);
 }
 // Main Program
